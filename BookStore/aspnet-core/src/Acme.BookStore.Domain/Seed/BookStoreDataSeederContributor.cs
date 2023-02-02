@@ -1,6 +1,47 @@
-﻿namespace Acme.BookStore.Seed;
+﻿using System;
+using System.Threading.Tasks;
+using Acme.BookStore.Book;
+using Volo.Abp.Data;
+using Volo.Abp.DependencyInjection;
+using Volo.Abp.Domain.Repositories;
 
-public class BookStoreDataSeederContributor
+namespace Acme.BookStore.Seed;
+
+public class BookStoreDataSeederContributor : IDataSeedContributor , ITransientDependency
 {
+
+    private readonly IRepository<Books.Book, Guid> _bookRepository;
+
+    public BookStoreDataSeederContributor(IRepository<Books.Book, Guid> bookRepository)
+    {
+        _bookRepository = bookRepository;
+    }
     
+    public async Task SeedAsync(DataSeedContext context)
+    {
+        if (await _bookRepository.GetCountAsync() > 0)
+            return;
+        
+        await _bookRepository.InsertAsync(
+            new Books.Book
+            {
+                Name = "1984",
+                Type = BookType.Dystopia,
+                PublishDate = new DateTime(1949, 6, 8),
+                Price = 19.84f
+            },
+            autoSave: true
+        );
+
+        await _bookRepository.InsertAsync(
+            new Books.Book
+            {
+                Name = "The Hitchhiker's Guide to the Galaxy",
+                Type = BookType.ScienceFiction,
+                PublishDate = new DateTime(1995, 9, 27),
+                Price = 42.0f
+            },
+            autoSave: true
+        );
+    }
 }
